@@ -5,6 +5,7 @@ struct BetAmountView: View {
     var isActive:Bool
     var size: Int
     
+    
     var body: some View {
         ZStack {
             Text("\(amount)")

@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var spinImages: [String] = randomizeImages()
+    @State private var user = User(money:100,highScore: 0, betAmount: 10)
+    @State private var bet10 = true
+    @State private var bet20 = false
+    @State private var isInfoPopupVisible = false
+    
     var body: some View {
         ZStack {
             LinearGradient(
@@ -16,7 +22,8 @@ struct ContentView: View {
             VStack {
                 HStack {
                     Button(action: {
-                        // Action for refresh
+                        user.money = 100
+                        user.highScore = 0
                     }) {
                         Image(systemName: "arrow.clockwise")
                             .font(.title)
@@ -31,7 +38,9 @@ struct ContentView: View {
                         .offset(y:50)
                     
                     Button(action: {
-                        // Action for info
+                        withAnimation {
+                            isInfoPopupVisible.toggle()
+                        }
                     }) {
                         Image(systemName: "info.circle")
                             .font(.title)
@@ -43,37 +52,74 @@ struct ContentView: View {
                 .offset(y:-20)
                 
                 HStack {
-                    InfoView(number: 100,firstText: "Your",secondText:"Money",isNumberLeft:true,textFontSize: 10,numberFontSize: 25)
-                        .padding(.trailing,80)
-                    InfoView(number: 740,firstText: "High",secondText:"Score",isNumberLeft:false,textFontSize: 10,numberFontSize: 25)
+                    InfoView(number: user.money, firstText: "Your", secondText: "Money", isNumberLeft: true, textFontSize: 10, numberFontSize: 25)
+                        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 20)
+
+                    InfoView(number: user.highScore, firstText: "High", secondText: "Score", isNumberLeft: false, textFontSize: 10, numberFontSize: 25)
+                        .frame(minWidth: 0, maxWidth: .infinity, alignment: .trailing)
+                        .padding(.trailing, 20)
                 }
-                .offset(y:30)
+                .offset(y: 30)
                 
                 VStack {
                     let spinSize = 140
                  
-                    SpinView(spinWidth: spinSize, imageName: "apple")
+                    SpinView(spinWidth: spinSize, imageName: spinImages[0])
                     
                     HStack {
-                        SpinView(spinWidth: spinSize, imageName: "bar")
+                        SpinView(spinWidth: spinSize, imageName: spinImages[1])
                             .padding(.trailing,50)
-                        SpinView(spinWidth: spinSize, imageName: "bell")
+                        SpinView(spinWidth: spinSize, imageName: spinImages[2])
                     }
                     .padding(.top,-80)
                     
-                    Image("spin")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth:CGFloat(spinSize),maxHeight: .infinity)
-                        .padding(.top,-140)
+                    Button(action: {
+                        // Action to spin
+                        self.spinImages = randomizeImages()
+                        checkWinCon(spinImages: spinImages, user: &user)
+                    }) {
+                        Image("spin")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: CGFloat(spinSize), maxHeight: .infinity)
+                            .padding(.top, -140)
+                    }
                 }
                 .padding(.top,50)
                 
                 HStack(spacing:220) {
-                    BetAmountView(amount: 20, isActive: true, size: 25)
-                    BetAmountView(amount: 10, isActive: false, size: 25)
+                    Button(action: {
+                        if self.bet20 == false {
+                            self.bet10 = true
+                            self.bet20 = false
+                            user.betAmount = 20
+                        } else {
+                            user.betAmount = 20
+                        }
+                    }) {
+                        BetAmountView(amount: 20, isActive: self.bet20, size: 25)
+                    }
+                    Button(action: {
+                        if self.bet10 == false {
+                            self.bet10 = true
+                            self.bet20 = false
+                            user.betAmount = 10
+                        } else {
+                            user.betAmount = 10
+                        }
+                    }){
+                        BetAmountView(amount: 10, isActive: self.bet10, size: 25)
+                    }
+                    
                 }
                 .padding(.top,-50)
+                
+                
+            }
+            if isInfoPopupVisible {
+                InfoPopupView(isShowing: $isInfoPopupVisible)
+                    .transition(.scale)
             }
         }
     }
